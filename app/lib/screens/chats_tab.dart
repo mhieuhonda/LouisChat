@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/app_store.dart';
 import '../utils/theme.dart';
 import '../widgets/avatar.dart';
+import '../widgets/loading.dart';
 import 'chat_detail_screen.dart';
 
 class ChatsTab extends StatefulWidget {
@@ -19,6 +20,7 @@ class _ChatsTabState extends State<ChatsTab> {
   final ApiService _api = ApiService();
   List<Conversation> _convs = [];
   bool _loading = true;
+  bool _refreshing = false;
   String? _error;
   Timer? _poller;
 
@@ -27,7 +29,7 @@ class _ChatsTabState extends State<ChatsTab> {
     super.initState();
     _load();
     // Lightweight polling as a safety net alongside socket realtime.
-    _poller = Timer.periodic(const Duration(seconds: 15), (_) => _load(silent: true));
+    _poller = Timer.periodic(const Duration(seconds: 30), (_) => _load(silent: true));
   }
 
   @override
@@ -37,15 +39,31 @@ class _ChatsTabState extends State<ChatsTab> {
   }
 
   Future<void> _load({bool silent = false}) async {
-    if (!silent) setState(() => _loading = true);
+    if (!silent) {
+      setState(() {
+        if (_convs.isEmpty) {
+          _loading = true;
+        } else {
+          _refreshing = true;
+        }
+        _error = null;
+      });
+    }
     try {
       final list = await _api.listConversations();
       _convs = list.map((e) => Conversation.fromJson(e as Map<String, dynamic>)).toList();
       _error = null;
+    } on ApiException catch (e) {
+      _error = e.viMessage;
     } catch (e) {
-      _error = e.toString();
+      _error = 'Lỗi: $e';
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _refreshing = false;
+        });
+      }
     }
   }
 
@@ -53,13 +71,13 @@ class _ChatsTabState extends State<ChatsTab> {
     if (dt == null) return '';
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inMinutes < 1) return 'just now';
-    if (diff.inHours < 1) return '${diff.inMinutes}m';
+    if (diff.inMinutes < 1) return 'vừa xong';
+    if (diff.inHours < 1) return '${diff.inMinutes} phút';
     if (diff.inDays < 1) {
       return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     }
     if (diff.inDays < 7) {
-      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
       return days[dt.weekday - 1];
     }
     return '${dt.day}/${dt.month}';
@@ -85,32 +103,62 @@ class _ChatsTabState extends State<ChatsTab> {
               ),
             ),
             const Spacer(),
-            GestureDetector(
-              onTap: () => _load(),
-              child: CircleAvatar(
-                backgroundColor: MessengerTheme.inputBg,
-                child: Icon(Icons.edit, color: MessengerTheme.primary, size: 20),
+            if (_refreshing)
+              const Padding(
+                padding: EdgeInsets.only(right: 12),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
               ),
+            IconButton(
+              icon: const Icon(Icons.search, color: MessengerTheme.primary),
+              onPressed: () {
+                // Switch to People tab — handled via IndexStack
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Mở tab "Mọi người" để tìm bạn bè'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
             ),
-            const SizedBox(width: 8),
           ],
         ),
       ),
       body: RefreshIndicator(
         color: MessengerTheme.primary,
         onRefresh: _load,
-        child: _loading && _convs.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null && _convs.isEmpty
-                ? _buildError()
-                : _convs.isEmpty
-                    ? _buildEmpty()
-                    : _buildList(store),
+        child: _buildBody(store),
       ),
     );
   }
 
-  Widget _buildList(AppStore store) {
+  Widget _buildBody(AppStore store) {
+    if (_loading && _convs.isEmpty) {
+      return const ChatListSkeleton();
+    }
+    if (_error != null && _convs.isEmpty) {
+      return ListView(
+        children: [
+          const SizedBox(height: 60),
+          ErrorView(message: _error!, onRetry: _load),
+        ],
+      );
+    }
+    if (_convs.isEmpty) {
+      return ListView(
+        children: [
+          const SizedBox(height: 60),
+          EmptyView(
+            icon: Icons.forum_outlined,
+            title: 'Chưa có cuộc trò chuyện nào',
+            subtitle: 'Mở tab "Mọi người" để tìm bạn bè và bắt đầu chat.',
+          ),
+        ],
+      );
+    }
     return ListView.separated(
       itemCount: _convs.length,
       separatorBuilder: (_, __) => const Divider(height: 1, indent: 86),
@@ -159,52 +207,6 @@ class _ChatsTabState extends State<ChatsTab> {
           },
         );
       },
-    );
-  }
-
-  Widget _buildEmpty() {
-    return ListView(
-      children: [
-        const SizedBox(height: 80),
-        Icon(Icons.forum_outlined, size: 64, color: MessengerTheme.textTertiary),
-        const SizedBox(height: 12),
-        const Center(
-          child: Text(
-            'Chưa có cuộc trò chuyện nào',
-            style: TextStyle(color: MessengerTheme.textSecondary, fontSize: 15),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Center(
-          child: Text(
-            'Mở tab "Mọi người" để tìm bạn bè.',
-            style: TextStyle(color: MessengerTheme.textTertiary, fontSize: 13),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildError() {
-    return ListView(
-      children: [
-        const SizedBox(height: 80),
-        Icon(Icons.cloud_off, size: 64, color: Colors.red.shade300),
-        const SizedBox(height: 12),
-        Center(
-          child: Text(
-            'Không tải được danh sách chat',
-            style: TextStyle(color: Colors.red.shade700),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Center(
-          child: ElevatedButton(
-            onPressed: _load,
-            child: const Text('Thử lại'),
-          ),
-        ),
-      ],
     );
   }
 }

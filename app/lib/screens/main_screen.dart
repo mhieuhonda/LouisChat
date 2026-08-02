@@ -19,10 +19,13 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    // Kick off socket connection if not already connected.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final store = context.read<AppStore>();
       store.refreshMe();
+      // Connect socket if we have a token (e.g. after server URL change)
+      if (store.currentUser != null) {
+        // Socket connection already handled in login/register flow
+      }
     });
   }
 

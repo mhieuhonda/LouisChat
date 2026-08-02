@@ -5,7 +5,7 @@ import '../models/user.dart';
 import 'api_service.dart';
 import 'socket_service.dart';
 
-/// Global app state: current user, auth state, online user map.
+/// Global app state: current user, auth state, online user map, server config.
 class AppStore extends ChangeNotifier {
   AppUser? _currentUser;
   AppUser? get currentUser => _currentUser;
@@ -19,6 +19,12 @@ class AppStore extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  String _serverVersion = '';
+  String get serverVersion => _serverVersion;
+
+  bool _serverReachable = true;
+  bool get serverReachable => _serverReachable;
+
   final Map<String, bool> _online = {};
   bool isOnline(String userId) => _online[userId] ?? false;
 
@@ -26,15 +32,15 @@ class AppStore extends ChangeNotifier {
 
   Future<void> bootstrap() async {
     await _api.init();
+    // Test server reachability first
+    await checkServer();
     try {
       final sp = await SharedPreferences.getInstance();
       final raw = sp.getString('user');
       if (_api.token.isNotEmpty && raw != null) {
-        // Try /me to ensure token still valid
         try {
           _currentUser = await _api.me();
         } catch (_) {
-          // fall back to cached user
           _currentUser = AppUser.fromJson(jsonDecode(raw) as Map<String, dynamic>);
         }
       }
@@ -44,6 +50,28 @@ class AppStore extends ChangeNotifier {
     }
   }
 
+  Future<void> checkServer() async {
+    try {
+      _serverVersion = await _api.pingServer();
+      _serverReachable = true;
+    } catch (_) {
+      _serverReachable = false;
+      _serverVersion = '';
+    }
+    notifyListeners();
+  }
+
+  Future<bool> setServerUrls({required String api, required String socket}) async {
+    await _api.setServerUrls(api: api, socket: socket);
+    await checkServer();
+    return _serverReachable;
+  }
+
+  Future<void> resetServerUrls() async {
+    await _api.resetServerUrls();
+    await checkServer();
+  }
+
   Future<bool> login(String identifier, String password) async {
     _loading = true;
     _error = null;
@@ -51,13 +79,18 @@ class AppStore extends ChangeNotifier {
     try {
       final res = await _api.login(identifier: identifier, password: password);
       _currentUser = AppUser.fromJson(res['user'] as Map<String, dynamic>);
-      SocketService().connect(_api.token);
+      SocketService().connect(_api.token, _api.socketUrl);
       _loading = false;
       notifyListeners();
       return true;
+    } on ApiException catch (e) {
+      _loading = false;
+      _error = e.viMessage;
+      notifyListeners();
+      return false;
     } catch (e) {
       _loading = false;
-      _error = e.toString();
+      _error = 'Lỗi không xác định: $e';
       notifyListeners();
       return false;
     }
@@ -80,13 +113,18 @@ class AppStore extends ChangeNotifier {
         displayName: displayName,
       );
       _currentUser = AppUser.fromJson(res['user'] as Map<String, dynamic>);
-      SocketService().connect(_api.token);
+      SocketService().connect(_api.token, _api.socketUrl);
       _loading = false;
       notifyListeners();
       return true;
+    } on ApiException catch (e) {
+      _loading = false;
+      _error = e.viMessage;
+      notifyListeners();
+      return false;
     } catch (e) {
       _loading = false;
-      _error = e.toString();
+      _error = 'Lỗi không xác định: $e';
       notifyListeners();
       return false;
     }
@@ -131,5 +169,10 @@ class AppStore extends ChangeNotifier {
       _online[userId] = online;
       notifyListeners();
     }
+  }
+
+  void clearError() {
+    _error = null;
+    notifyListeners();
   }
 }

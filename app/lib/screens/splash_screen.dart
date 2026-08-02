@@ -4,6 +4,7 @@ import '../services/app_store.dart';
 import '../utils/theme.dart';
 import 'login_screen.dart';
 import 'main_screen.dart';
+import 'server_settings_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -23,8 +24,15 @@ class _SplashScreenState extends State<SplashScreen> {
     final store = context.read<AppStore>();
     await store.bootstrap();
     if (!mounted) return;
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 400));
     if (!mounted) return;
+
+    // If server is unreachable AND user is not logged in, show settings
+    if (!store.serverReachable && store.currentUser == null) {
+      _showServerWarning(store);
+      return;
+    }
+
     if (store.currentUser != null) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const MainScreen()),
@@ -36,6 +44,14 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
+  void _showServerWarning(AppStore store) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => const ServerSettingsScreen(isInitialSetup: true),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +60,6 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo bubble
             Container(
               width: 110,
               height: 110,
@@ -77,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Stay connected with everyone.',
+              'Đang khởi động...',
               style: TextStyle(color: Colors.white70, fontSize: 14),
             ),
             const SizedBox(height: 36),

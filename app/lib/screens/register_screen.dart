@@ -51,6 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         SnackBar(
           content: Text(store.error ?? 'Đăng ký thất bại'),
           backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -89,6 +90,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 24),
                 TextFormField(
                   controller: _displayCtrl,
+                  textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
                     labelText: 'Tên hiển thị',
                     border: OutlineInputBorder(),
@@ -98,6 +100,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 14),
                 TextFormField(
                   controller: _usernameCtrl,
+                  textInputAction: TextInputAction.next,
+                  autocorrect: false,
                   decoration: const InputDecoration(
                     labelText: 'Tên đăng nhập',
                     border: OutlineInputBorder(),
@@ -115,6 +119,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  autocorrect: false,
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     border: OutlineInputBorder(),
@@ -132,6 +138,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: _passwordCtrl,
                   obscureText: _obscure,
+                  textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
                     labelText: 'Mật khẩu',
                     border: const OutlineInputBorder(),
@@ -148,6 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (v.length < 6) return 'Tối thiểu 6 ký tự';
                     return null;
                   },
+                  onFieldSubmitted: (_) => _submit(),
                 ),
                 const SizedBox(height: 26),
                 SizedBox(
@@ -161,15 +169,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     onPressed: _busy ? null : _submit,
                     child: _busy
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              strokeWidth: 2.5,
-                            ),
+                        ? const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  strokeWidth: 2.5,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text('Đang tạo tài khoản...'),
+                            ],
                           )
                         : const Text('ĐĂNG KÝ', style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Bằng việc đăng ký, bạn đồng ý với điều khoản sử dụng LouisChat.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: MessengerTheme.textTertiary,
+                    fontSize: 11,
                   ),
                 ),
               ],

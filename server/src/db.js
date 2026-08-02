@@ -16,9 +16,22 @@ pool.on('error', (err) => {
   console.error('[PG] Unexpected error on idle client', err);
 });
 
+async function ping() {
+  const client = await pool.connect();
+  try {
+    await client.query('SELECT 1');
+    return true;
+  } finally {
+    client.release();
+  }
+}
+
 async function initSchema() {
   const client = await pool.connect();
   try {
+    // Ensure pgcrypto for gen_random_uuid() (PostgreSQL < 13 needs it; 13+ has it built-in)
+    await client.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
+
     // Users table
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -87,4 +100,4 @@ async function initSchema() {
   }
 }
 
-module.exports = { pool, initSchema };
+module.exports = { pool, initSchema, ping };

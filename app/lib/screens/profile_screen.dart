@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../utils/theme.dart';
 import '../widgets/avatar.dart';
 import 'login_screen.dart';
+import 'server_settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -20,6 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _bioCtrl = TextEditingController();
   bool _editing = false;
   bool _saving = false;
+  bool _uploading = false;
 
   @override
   void dispose() {
@@ -37,8 +39,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       imageQuality: 85,
     );
     if (x == null) return;
+    setState(() => _uploading = true);
     final store = context.read<AppStore>();
     await store.updateAvatar(x.path);
+    if (mounted) {
+      setState(() => _uploading = false);
+      if (store.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(store.error!),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã cập nhật ảnh đại diện')),
+        );
+      }
+    }
   }
 
   Future<void> _save() async {
@@ -53,10 +71,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _saving = false;
         _editing = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã cập nhật hồ sơ')),
-      );
+      if (store.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(store.error!),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã cập nhật hồ sơ')),
+        );
+      }
     }
+  }
+
+  Future<void> _confirmLogout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Đăng xuất?'),
+        content: const Text('Bạn sẽ cần đăng nhập lại để sử dụng LouisChat.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Đăng xuất'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final store = context.read<AppStore>();
+    await store.logout();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
   }
 
   @override
@@ -92,23 +148,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           children: [
             GestureDetector(
-              onTap: _pickAvatar,
+              onTap: _uploading ? null : _pickAvatar,
               child: Stack(
                 children: [
                   Avatar(imageUrl: avatarUrl, name: user.displayName, radius: 56),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: MessengerTheme.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                  if (_uploading)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
                       ),
-                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
                     ),
-                  ),
+                  if (!_uploading)
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: MessengerTheme.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -199,7 +270,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   '${user.createdAt!.day}/${user.createdAt!.month}/${user.createdAt!.year}',
                   'Ngày tham gia',
                 ),
-              const SizedBox(height: 24),
+              const Divider(height: 32),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.dns_outlined, color: MessengerTheme.textSecondary),
+                title: const Text('Cài đặt máy chủ',
+                    style: TextStyle(fontWeight: FontWeight.w500)),
+                subtitle: Text(
+                  _api.apiUrl,
+                  style: const TextStyle(color: MessengerTheme.textTertiary, fontSize: 12),
+                ),
+                trailing: const Icon(Icons.chevron_right, color: MessengerTheme.textTertiary),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ServerSettingsScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -210,20 +298,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   icon: const Icon(Icons.logout),
                   label: const Text('Đăng xuất'),
-                  onPressed: () async {
-                    await store.logout();
-                    if (!context.mounted) return;
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      (_) => false,
-                    );
-                  },
+                  onPressed: _confirmLogout,
                 ),
               ),
             ],
             const SizedBox(height: 24),
             Text(
-              'LouisChat v0.1.0',
+              'LouisChat v0.2.0',
               style: TextStyle(color: MessengerTheme.textTertiary, fontSize: 12),
             ),
           ],

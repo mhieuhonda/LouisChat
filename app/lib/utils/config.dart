@@ -1,21 +1,19 @@
-// Central configuration. Edit API_URL / SOCKET_URL to point to your server.
-// For Android emulator use http://10.0.2.2:3000; for a real device use a
-// reachable LAN/public IP.
+// Central configuration.
+// The server URL is runtime-configurable (stored in SharedPreferences) so the
+// user can change it inside the app without recompiling.
 
 class AppConfig {
-  // REST API base URL (no trailing slash)
-  static const String apiUrl = String.fromEnvironment(
-    'API_URL',
-    defaultValue: 'http://10.0.2.2:3000',
-  );
+  // Default server URL. Override at runtime via Settings screen.
+  // For Android emulator use http://10.0.2.2:3000
+  // For real device use a reachable LAN/public IP.
+  static const String defaultApiUrl = 'http://163.44.96.79:3000';
+  static const String defaultSocketUrl = 'http://163.44.96.79:3000';
 
-  // Socket.io URL (usually same host as API)
-  static const String socketUrl = String.fromEnvironment(
-    'SOCKET_URL',
-    defaultValue: 'http://10.0.2.2:3000',
-  );
+  // SharedPreferences keys
+  static const String kApiUrl = 'server_api_url';
+  static const String kSocketUrl = 'server_socket_url';
 
   // App identity
   static const String appName = 'LouisChat';
-  static const String appVersion = '0.1.0';
+  static const String appVersion = '0.2.0';
 }

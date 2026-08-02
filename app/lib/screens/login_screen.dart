@@ -4,6 +4,7 @@ import '../services/app_store.dart';
 import '../utils/theme.dart';
 import 'main_screen.dart';
 import 'register_screen.dart';
+import 'server_settings_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -43,6 +44,18 @@ class _LoginScreenState extends State<LoginScreen> {
         SnackBar(
           content: Text(store.error ?? 'Đăng nhập thất bại'),
           backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          action: (store.error ?? '').contains('máy chủ')
+              ? SnackBarAction(
+                  label: 'Cài đặt',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ServerSettingsScreen()),
+                    );
+                  },
+                )
+              : null,
         ),
       );
     }
@@ -50,6 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final store = context.watch<AppStore>();
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -60,7 +74,29 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 32),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ServerSettingsScreen()),
+                      );
+                    },
+                    icon: Icon(
+                      store.serverReachable ? Icons.cloud_done : Icons.cloud_off,
+                      color: store.serverReachable ? Colors.green : Colors.red,
+                      size: 18,
+                    ),
+                    label: Text(
+                      store.serverReachable ? 'Server OK' : 'Server lỗi',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: store.serverReachable ? Colors.green : Colors.red,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Container(
                   width: 90,
                   height: 90,
@@ -85,6 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 32),
                 TextFormField(
                   controller: _identifierCtrl,
+                  textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
                     labelText: 'Tên đăng nhập hoặc Email',
                     border: OutlineInputBorder(),
@@ -96,6 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _passwordCtrl,
                   obscureText: _obscure,
+                  textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
                     labelText: 'Mật khẩu',
                     border: const OutlineInputBorder(),
@@ -106,6 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   validator: (v) => (v == null || v.isEmpty) ? 'Vui lòng nhập mật khẩu' : null,
+                  onFieldSubmitted: (_) => _submit(),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -119,13 +158,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     onPressed: _busy ? null : _submit,
                     child: _busy
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              strokeWidth: 2.5,
-                            ),
+                        ? const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  strokeWidth: 2.5,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text('Đang đăng nhập...'),
+                            ],
                           )
                         : const Text('ĐĂNG NHẬP', style: TextStyle(fontWeight: FontWeight.w600)),
                   ),

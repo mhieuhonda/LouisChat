@@ -1,7 +1,7 @@
 name: louischat
 description: "LouisChat - A Messenger-style realtime chat app built with Flutter."
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
@@ -31,6 +31,9 @@ dependencies:
 
   # File path utilities
   path: ^1.9.0
+
+  # Connectivity diagnostics
+  connectivity_plus: ^6.0.5
 
 dev_dependencies:
   flutter_lints: ^4.0.0

@@ -13,22 +13,27 @@ class SocketService {
   bool _connected = false;
   bool get isConnected => _connected;
 
+  String _url = AppConfig.defaultSocketUrl;
+
   final Map<String, List<JsonHandler>> _handlers = {
     'message:new': [],
     'typing': [],
     'message:read': [],
     'presence': [],
+    'connect': [],
+    'disconnect': [],
   };
 
-  void connect(String token) {
+  void connect(String token, String socketUrl) {
+    _url = socketUrl;
     if (_socket != null) {
-      if (_connected) return;
       _socket!.dispose();
       _socket = null;
     }
+    _connected = false;
 
     _socket = sio.io(
-      AppConfig.socketUrl,
+      _url,
       sio.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()
@@ -43,15 +48,21 @@ class SocketService {
     _socket!.onConnect((_) {
       _connected = true;
       print('[socket] connected');
+      _dispatch('connect', {'ok': true});
     });
 
     _socket!.onDisconnect((_) {
       _connected = false;
       print('[socket] disconnected');
+      _dispatch('disconnect', {'ok': false});
     });
 
     _socket!.onConnectError((err) {
       print('[socket] connect error: $err');
+    });
+
+    _socket!.onReconnectAttempt((n) {
+      print('[socket] reconnect attempt #$n');
     });
 
     _socket!.on('message:new', (data) => _dispatch('message:new', data));
@@ -66,6 +77,10 @@ class SocketService {
     if (data is Map<String, dynamic>) {
       for (final h in List<JsonHandler>.from(_handlers[event] ?? [])) {
         h(data);
+      }
+    } else if (data == null) {
+      for (final h in List<JsonHandler>.from(_handlers[event] ?? [])) {
+        h({'ok': true});
       }
     }
   }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext (HTTP) traffic to all hosts in development.
+         For v1.0 CH Play release, you should switch your server to HTTPS
+         and remove this block. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">163.44.96.79</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
