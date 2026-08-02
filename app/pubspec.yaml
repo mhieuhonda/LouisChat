@@ -1,0 +1,42 @@
+name: louischat
+description: "LouisChat - A Messenger-style realtime chat app built with Flutter."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.19.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+  # Networking
+  http: ^1.2.2
+  socket_io_client: ^2.0.3+1
+
+  # State / utils
+  provider: ^6.1.2
+  shared_preferences: ^2.3.2
+
+  # Images
+  image_picker: ^1.1.2
+  cached_network_image: ^3.4.1
+
+  # Formatting
+  intl: ^0.19.0
+
+  # File path utilities
+  path: ^1.9.0
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
