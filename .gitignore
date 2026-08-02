@@ -50,7 +50,6 @@ app/android/app/profile
 **/ios/Runner/GeneratedPluginRegistrant.*
 
 # Secrets
-.env
 *.pem
 *.p12
 

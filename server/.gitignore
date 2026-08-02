@@ -1,6 +1,5 @@
 # Server dependencies
 node_modules/
-.env
 uploads/
 *.log
 npm-debug.log*

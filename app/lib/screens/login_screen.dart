@@ -4,7 +4,6 @@ import '../services/app_store.dart';
 import '../utils/theme.dart';
 import 'main_screen.dart';
 import 'register_screen.dart';
-import 'server_settings_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -45,17 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
           content: Text(store.error ?? 'Đăng nhập thất bại'),
           backgroundColor: Colors.red.shade700,
           behavior: SnackBarBehavior.floating,
-          action: (store.error ?? '').contains('máy chủ')
-              ? SnackBarAction(
-                  label: 'Cài đặt',
-                  textColor: Colors.white,
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const ServerSettingsScreen()),
-                    );
-                  },
-                )
-              : null,
         ),
       );
     }
@@ -63,7 +51,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<AppStore>();
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -74,29 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: TextButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const ServerSettingsScreen()),
-                      );
-                    },
-                    icon: Icon(
-                      store.serverReachable ? Icons.cloud_done : Icons.cloud_off,
-                      color: store.serverReachable ? Colors.green : Colors.red,
-                      size: 18,
-                    ),
-                    label: Text(
-                      store.serverReachable ? 'Server OK' : 'Server lỗi',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: store.serverReachable ? Colors.green : Colors.red,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 Container(
                   width: 90,
                   height: 90,

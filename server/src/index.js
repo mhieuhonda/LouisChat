@@ -130,7 +130,7 @@ process.on('unhandledRejection', (reason) => {
     await initSchema();
     await mysqlPing();
     server.listen(PORT, '0.0.0.0', () => {
-      console.log(`[LouisChat] server v0.2.0 listening on :${PORT}`);
+      console.log(`[LouisChat] server v0.3.0 listening on :${PORT}`);
       console.log(`[LouisChat] health:  http://localhost:${PORT}/api/health`);
       console.log(`[LouisChat] deep:    http://localhost:${PORT}/api/health/deep`);
     });

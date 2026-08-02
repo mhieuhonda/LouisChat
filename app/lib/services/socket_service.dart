@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:socket_io_client/socket_io_client.dart' as sio;
-import '../utils/config.dart';
 
 typedef JsonHandler = void Function(Map<String, dynamic>);
 
@@ -13,8 +12,6 @@ class SocketService {
   bool _connected = false;
   bool get isConnected => _connected;
 
-  String _url = AppConfig.defaultSocketUrl;
-
   final Map<String, List<JsonHandler>> _handlers = {
     'message:new': [],
     'typing': [],
@@ -25,7 +22,6 @@ class SocketService {
   };
 
   void connect(String token, String socketUrl) {
-    _url = socketUrl;
     if (_socket != null) {
       _socket!.dispose();
       _socket = null;
@@ -33,7 +29,7 @@ class SocketService {
     _connected = false;
 
     _socket = sio.io(
-      _url,
+      socketUrl,
       sio.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()

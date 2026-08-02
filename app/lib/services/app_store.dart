@@ -5,7 +5,7 @@ import '../models/user.dart';
 import 'api_service.dart';
 import 'socket_service.dart';
 
-/// Global app state: current user, auth state, online user map, server config.
+/// Global app state: current user, auth state, online user map.
 class AppStore extends ChangeNotifier {
   AppUser? _currentUser;
   AppUser? get currentUser => _currentUser;
@@ -19,12 +19,6 @@ class AppStore extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  String _serverVersion = '';
-  String get serverVersion => _serverVersion;
-
-  bool _serverReachable = true;
-  bool get serverReachable => _serverReachable;
-
   final Map<String, bool> _online = {};
   bool isOnline(String userId) => _online[userId] ?? false;
 
@@ -32,8 +26,6 @@ class AppStore extends ChangeNotifier {
 
   Future<void> bootstrap() async {
     await _api.init();
-    // Test server reachability first
-    await checkServer();
     try {
       final sp = await SharedPreferences.getInstance();
       final raw = sp.getString('user');
@@ -48,28 +40,6 @@ class AppStore extends ChangeNotifier {
       _bootstrapped = true;
       notifyListeners();
     }
-  }
-
-  Future<void> checkServer() async {
-    try {
-      _serverVersion = await _api.pingServer();
-      _serverReachable = true;
-    } catch (_) {
-      _serverReachable = false;
-      _serverVersion = '';
-    }
-    notifyListeners();
-  }
-
-  Future<bool> setServerUrls({required String api, required String socket}) async {
-    await _api.setServerUrls(api: api, socket: socket);
-    await checkServer();
-    return _serverReachable;
-  }
-
-  Future<void> resetServerUrls() async {
-    await _api.resetServerUrls();
-    await checkServer();
   }
 
   Future<bool> login(String identifier, String password) async {

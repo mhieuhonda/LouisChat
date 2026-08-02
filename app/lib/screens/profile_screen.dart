@@ -6,7 +6,6 @@ import '../services/api_service.dart';
 import '../utils/theme.dart';
 import '../widgets/avatar.dart';
 import 'login_screen.dart';
-import 'server_settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -271,23 +270,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   'Ngày tham gia',
                 ),
               const Divider(height: 32),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.dns_outlined, color: MessengerTheme.textSecondary),
-                title: const Text('Cài đặt máy chủ',
-                    style: TextStyle(fontWeight: FontWeight.w500)),
-                subtitle: Text(
-                  _api.apiUrl,
-                  style: const TextStyle(color: MessengerTheme.textTertiary, fontSize: 12),
-                ),
-                trailing: const Icon(Icons.chevron_right, color: MessengerTheme.textTertiary),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ServerSettingsScreen()),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -304,7 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
             const SizedBox(height: 24),
             Text(
-              'LouisChat v0.2.0',
+              'LouisChat v0.3.0',
               style: TextStyle(color: MessengerTheme.textTertiary, fontSize: 12),
             ),
           ],

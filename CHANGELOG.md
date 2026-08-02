@@ -4,6 +4,53 @@ All notable changes to **LouisChat** are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-08-02
+
+### Highlights
+
+**Zero-config experience.** Users no longer need to configure anything — just open
+the app and start chatting. The server settings screen has been completely removed
+and the server URL is hardcoded. The backend ships with a ready-to-use `.env` file
+so deployment is a single `npm install && npm start` command.
+
+### Removed — App
+- **`ServerSettingsScreen`** — deleted entirely. No user should ever have to
+  configure a server address in a messaging app.
+- **Runtime server URL configuration** — `AppStore.setServerUrls()`,
+  `AppStore.resetServerUrls()`, `AppStore.checkServer()`,
+  `AppStore.serverReachable`, `AppStore.serverVersion` all removed.
+- **`ApiService.setServerUrls()` / `resetServerUrls()`** — removed. The URL is
+  now a constant in `AppConfig`.
+- **Server status pill** on the login screen — removed (no longer relevant).
+- **"Cài đặt máy chủ" tile** in the profile screen — removed.
+- **"Cài đặt" SnackBar action** on login failure — removed.
+- **SharedPreferences keys** for server URL (`server_api_url`, `server_socket_url`)
+  — removed from `AppConfig`.
+
+### Changed — App
+- `AppConfig` now exposes `apiUrl` and `socketUrl` as static constants instead of
+  `defaultApiUrl` / `defaultSocketUrl` + SharedPreferences overrides.
+- `ApiService` no longer reads or writes server URLs from SharedPreferences.
+- `AppStore.bootstrap()` no longer calls `checkServer()` — the app just connects
+  directly. If the server is down, the user sees a normal error message.
+- `SplashScreen` no longer redirects to `ServerSettingsScreen` when the server
+  is unreachable. It goes straight to login or main screen.
+- `LoginScreen` simplified — no server status indicator, no settings button.
+- `ProfileScreen` simplified — no "Cài đặt máy chủ" tile, version text updated
+  to `v0.3.0`.
+- `SocketService` no longer imports `AppConfig` — the URL is passed in from
+  `AppStore` which gets it from `ApiService`.
+- Version bumped to `0.3.0` across all components.
+
+### Added — Server
+- **`.env` file** — ships with all credentials pre-configured so the server starts
+  immediately with `npm install && npm start`.
+- **Strong JWT secret** — `LouisChat2026xK9mPq7wRt3vYz5bNc8dFg2hJk4lM` (replaces
+  the insecure placeholder).
+
+### Changed — Server
+- Version bumped to `0.3.0` in `package.json`, health endpoint, and startup log.
+
 ## [0.2.0] — 2026-08-02
 
 ### Highlights

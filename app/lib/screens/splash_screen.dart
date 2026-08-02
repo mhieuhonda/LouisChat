@@ -4,7 +4,6 @@ import '../services/app_store.dart';
 import '../utils/theme.dart';
 import 'login_screen.dart';
 import 'main_screen.dart';
-import 'server_settings_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -24,14 +23,8 @@ class _SplashScreenState extends State<SplashScreen> {
     final store = context.read<AppStore>();
     await store.bootstrap();
     if (!mounted) return;
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
-
-    // If server is unreachable AND user is not logged in, show settings
-    if (!store.serverReachable && store.currentUser == null) {
-      _showServerWarning(store);
-      return;
-    }
 
     if (store.currentUser != null) {
       Navigator.of(context).pushReplacement(
@@ -42,14 +35,6 @@ class _SplashScreenState extends State<SplashScreen> {
         MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
     }
-  }
-
-  void _showServerWarning(AppStore store) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => const ServerSettingsScreen(isInitialSetup: true),
-      ),
-    );
   }
 
   @override

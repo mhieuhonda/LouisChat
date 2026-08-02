@@ -11,7 +11,7 @@ router.get('/', (_req, res) => {
   res.json({
     ok: true,
     name: 'louischat-server',
-    version: '0.2.0',
+    version: '0.3.0',
     uptime: Math.floor(process.uptime()),
     ts: new Date().toISOString(),
   });

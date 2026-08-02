@@ -1,4 +1,4 @@
-# LouisChat — Flutter app
+# LouisChat — Flutter App
 
 The Android client for LouisChat. Messenger-style UI, realtime chat via Socket.io, JWT auth, and avatar uploads.
 
@@ -15,23 +15,6 @@ cd app
 flutter pub get
 ```
 
-## Configure
-
-The server URL is **runtime-configurable** — no recompilation needed.
-
-- Default: `http://163.44.96.79:3000`
-- Open **Profile → Cài đặt máy chủ** to change it inside the app.
-- Or set `API_URL` / `SOCKET_URL` Dart defines at build time:
-
-  ```bash
-  flutter build apk --release \
-    --dart-define=API_URL=http://your.server:3000 \
-    --dart-define=SOCKET_URL=http://your.server:3000
-  ```
-
-For Android emulator use `http://10.0.2.2:3000`. For a real device use a
-reachable LAN / public IP.
-
 ## Run (debug)
 
 ```bash
@@ -44,6 +27,10 @@ flutter run
 flutter build apk --release
 # Output: build/app/outputs/flutter-apk/app-release.apk
 ```
+
+## Zero Config
+
+The server URL is hardcoded — **no configuration needed**. Just open the app and start chatting.
 
 ## Project structure
 
@@ -61,14 +48,13 @@ lib/
 │   ├── chats_tab.dart
 │   ├── people_tab.dart
 │   ├── chat_detail_screen.dart
-│   ├── profile_screen.dart
-│   └── server_settings_screen.dart
+│   └── profile_screen.dart
 ├── services/
 │   ├── api_service.dart        # 12s timeout, viMessage translator
 │   ├── socket_service.dart     # auto-reconnect, multi-event handlers
 │   └── app_store.dart          # provider state
 ├── utils/
-│   ├── config.dart
+│   ├── config.dart             # hardcoded server URL
 │   └── theme.dart
 └── widgets/
     ├── avatar.dart

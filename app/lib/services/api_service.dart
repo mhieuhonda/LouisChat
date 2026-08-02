@@ -17,8 +17,8 @@ class ApiService {
   ApiService._internal();
 
   String? _token;
-  String _apiUrl = AppConfig.defaultApiUrl;
-  String _socketUrl = AppConfig.defaultSocketUrl;
+  final String _apiUrl = AppConfig.apiUrl;
+  final String _socketUrl = AppConfig.socketUrl;
 
   String get token => _token ?? '';
   String get apiUrl => _apiUrl;
@@ -27,24 +27,6 @@ class ApiService {
   Future<void> init() async {
     final sp = await SharedPreferences.getInstance();
     _token = sp.getString('jwt');
-    _apiUrl = sp.getString(AppConfig.kApiUrl) ?? AppConfig.defaultApiUrl;
-    _socketUrl = sp.getString(AppConfig.kSocketUrl) ?? AppConfig.defaultSocketUrl;
-  }
-
-  Future<void> setServerUrls({required String api, required String socket}) async {
-    _apiUrl = api.replaceAll(RegExp(r'/+$'), '');
-    _socketUrl = socket.replaceAll(RegExp(r'/+$'), '');
-    final sp = await SharedPreferences.getInstance();
-    await sp.setString(AppConfig.kApiUrl, _apiUrl);
-    await sp.setString(AppConfig.kSocketUrl, _socketUrl);
-  }
-
-  Future<void> resetServerUrls() async {
-    _apiUrl = AppConfig.defaultApiUrl;
-    _socketUrl = AppConfig.defaultSocketUrl;
-    final sp = await SharedPreferences.getInstance();
-    await sp.remove(AppConfig.kApiUrl);
-    await sp.remove(AppConfig.kSocketUrl);
   }
 
   Future<void> _saveToken(String token) async {
@@ -80,7 +62,6 @@ class ApiService {
   }
 
   // ===== Health check =====
-  /// Returns server version string on success, throws on failure.
   Future<String> pingServer() async {
     final res = await _withTimeout(
       http.get(Uri.parse('$_apiUrl/api/health'), headers: _headers(json: false)),
@@ -296,9 +277,9 @@ class ApiException implements Exception {
   String get viMessage {
     switch (code) {
       case 'timeout':
-        return 'Máy chủ không phản hồi. Hãy kiểm tra kết nối mạng và địa chỉ server.';
+        return 'Máy chủ không phản hồi. Hãy kiểm tra kết nối mạng.';
       case 'server_unreachable':
-        return 'Không kết nối được đến máy chủ. Hãy kiểm tra địa chỉ server trong Cài đặt.';
+        return 'Không kết nối được đến máy chủ. Hãy thử lại sau.';
       case 'user_exists':
         return 'Tên đăng nhập hoặc email đã được sử dụng.';
       case 'user_not_found':

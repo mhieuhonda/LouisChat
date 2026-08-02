@@ -20,19 +20,20 @@ Node.js + Express + Socket.io backend that powers the LouisChat Flutter app.
 
 ```bash
 cd server
-cp .env.example .env     # edit values if needed
 npm install
-npm run dev              # or: npm start
+npm start
 ```
 
-Server listens on `http://localhost:3000`.
+The `.env` file is pre-configured with all database credentials. No additional setup needed.
+
+Server listens on `http://0.0.0.0:3000`.
 
 ## Health checks
 
 ```bash
 # Liveness (no DB calls)
 curl http://localhost:3000/api/health
-# => { ok: true, name: 'louischat-server', version: '0.2.0', uptime: 123, ts: '...' }
+# => { ok: true, name: 'louischat-server', version: '0.3.0', uptime: 123, ts: '...' }
 
 # Readiness (pings PostgreSQL + MySQL + Redis)
 curl http://localhost:3000/api/health/deep
@@ -105,6 +106,6 @@ The `pgcrypto` extension is auto-created on boot for `gen_random_uuid()`.
 
 ## Notes
 
-- v0.1 / v0.2 ship **1-on-1** chats only; the schema already supports groups.
+- v0.3 ships **1-on-1** chats only; the schema already supports groups.
 - Avatars are stored on disk under `uploads/` and served at `/uploads/<file>`.
 - The `app_events` table in MySQL is used for lightweight server-side logging.
