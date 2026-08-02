@@ -32,18 +32,13 @@ class SocketService {
       sio.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()
+          .setAuth({'token': token})
           .setExtraHeaders({'authorization': 'Bearer $token'})
           .enableReconnection()
           .setReconnectionAttempts(9999)
           .setReconnectionDelay(2000)
           .build(),
     );
-
-    // Pass token via auth payload (server uses handshake.auth.token)
-    _socket!.io.options['extraHeaders'] = {
-      'authorization': 'Bearer $token',
-    };
-    _socket!.auth = {'token': token};
 
     _socket!.onConnect((_) {
       _connected = true;
